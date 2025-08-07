@@ -57,6 +57,11 @@ python thsrc.py
 npx @physictim/mcp-server-thsrc --help
 ```
 
+**Windows 用戶注意事項：**
+- 確保已安裝 Python 3.8+ 版本
+- 建議從 [python.org](https://python.org) 下載官方版本
+- 或使用 Microsoft Store 的 Python
+
 ### 方法 2：使用 pipx
 
 ```bash
@@ -110,6 +115,8 @@ pip install -r requirements.txt
 在 `claude_desktop_config.json` 中加入以下設定：
 
 #### 如果你使用 npx（推薦）：
+
+**Windows/macOS/Linux 通用：**
 ```json
 {
   "mcpServers": {
@@ -291,6 +298,38 @@ result = await get_thsr_available_seats("台北", "左營", "2024-01-01")
 - 無效站名：會拋出 `ValueError` 錯誤
 - API 認證失敗：請檢查環境變數設定
 - 網路連線問題：請確認網路連線狀態
+
+## Windows 故障排除
+
+### 找不到 Python 錯誤
+
+**症狀**：「❌ 錯誤：找不到 Python 3.8+ 版本」
+
+**解決方案**：
+
+1. **安裝 Python**：
+   - 從 [python.org](https://python.org) 下載最新版本
+   - 或從 Microsoft Store 安裝 Python
+   - 安裝時勾選 "Add Python to PATH"
+
+2. **驗證安裝**：
+   ```cmd
+   py --version
+   python --version
+   ```
+
+3. **手動安裝依賴**：
+   ```cmd
+   py -m pip install httpx fastmcp python-dotenv
+   ```
+
+### 權限問題
+
+**症狀**：pip 安裝失敗，權限拒絕
+
+**解決方案**：
+- 以管理員身份運行 Command Prompt 或 PowerShell
+- 或使用 `--user` 標誌：`py -m pip install --user ...`
 
 ## 授權
 

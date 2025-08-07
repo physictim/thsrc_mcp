@@ -48,28 +48,105 @@ function checkEnvironment() {
 
 // 檢查 Python 是否安裝
 function checkPython() {
-  // 添加常見的 Python 路徑
-  const pythonPaths = [
-    'python3', 'python',
-    '/usr/local/bin/python3', '/usr/local/bin/python',
-    '/usr/bin/python3', '/usr/bin/python',
-    '/opt/homebrew/bin/python3', '/opt/homebrew/bin/python'
-  ];
+  // 針對不同作業系統的 Python 路徑和檢測策略
+  const isWindows = os.platform() === 'win32';
   
-  for (const pythonCmd of pythonPaths) {
-    try {
-      const result = require('child_process').execSync(`${pythonCmd} --version`, { 
-        encoding: 'utf8',
-        stdio: 'pipe' 
-      });
-      if (result.includes('Python 3.')) {
-        const version = result.match(/Python (\d+\.\d+)/);
-        if (version && parseFloat(version[1]) >= 3.8) {
-          return pythonCmd;
+  if (isWindows) {
+    // Windows 特殊處理：優先使用 py launcher
+    const pyLaunchers = [
+      'py -3',      // 使用最新 Python 3
+      'py -3.12',   // 具體版本
+      'py -3.11',
+      'py -3.10',
+      'py -3.9',
+      'py -3.8',
+      'py',         // 默認版本
+      'python',     // 直接命令
+      'python3'
+    ];
+    
+    for (const pyCmd of pyLaunchers) {
+      try {
+        const result = require('child_process').execSync(`${pyCmd} --version`, { 
+          encoding: 'utf8',
+          stdio: 'pipe',
+          shell: true
+        });
+        
+        if (result.includes('Python 3.')) {
+          const version = result.match(/Python (\d+\.\d+)/);
+          if (version && parseFloat(version[1]) >= 3.8) {
+            return pyCmd;
+          }
         }
+      } catch (e) {
+        // 繼續嘗試下一個
       }
-    } catch (e) {
-      // 繼續嘗試下一個
+    }
+    
+    // 如果 py launcher 失敗，嘗試直接路徑
+    const directPaths = [
+      'C:\\Python3\\python.exe',
+      'C:\\Python313\\python.exe',
+      'C:\\Python312\\python.exe',
+      'C:\\Python311\\python.exe',
+      'C:\\Python310\\python.exe',
+      'C:\\Python39\\python.exe'
+    ];
+    
+    // 也嘗試用戶目錄
+    const username = os.userInfo().username;
+    const userPaths = [
+      `C:\\Users\\${username}\\AppData\\Local\\Programs\\Python\\Python313\\python.exe`,
+      `C:\\Users\\${username}\\AppData\\Local\\Programs\\Python\\Python312\\python.exe`,
+      `C:\\Users\\${username}\\AppData\\Local\\Programs\\Python\\Python311\\python.exe`,
+      `C:\\Users\\${username}\\AppData\\Local\\Programs\\Python\\Python310\\python.exe`,
+      `C:\\Users\\${username}\\AppData\\Local\\Programs\\Python\\Python39\\python.exe`
+    ];
+    
+    for (const pythonPath of [...directPaths, ...userPaths]) {
+      try {
+        const result = require('child_process').execSync(`"${pythonPath}" --version`, { 
+          encoding: 'utf8',
+          stdio: 'pipe',
+          shell: true
+        });
+        
+        if (result.includes('Python 3.')) {
+          const version = result.match(/Python (\d+\.\d+)/);
+          if (version && parseFloat(version[1]) >= 3.8) {
+            return `"${pythonPath}"`;
+          }
+        }
+      } catch (e) {
+        // 繼續嘗試下一個
+      }
+    }
+  } else {
+    // macOS/Linux 的檢測邏輯
+    const pythonPaths = [
+      'python3', 'python',
+      '/usr/local/bin/python3', '/usr/local/bin/python',
+      '/usr/bin/python3', '/usr/bin/python',
+      '/opt/homebrew/bin/python3', '/opt/homebrew/bin/python'
+    ];
+    
+    for (const pythonCmd of pythonPaths) {
+      try {
+        const result = require('child_process').execSync(`${pythonCmd} --version`, { 
+          encoding: 'utf8',
+          stdio: 'pipe'
+        });
+        
+        if (result.includes('Python 3.')) {
+          const version = result.match(/Python (\d+\.\d+)/);
+          if (version && parseFloat(version[1]) >= 3.8) {
+            return pythonCmd;
+          }
+        }
+      } catch (e) {
+        // 繼續嘗試下一個
+      }
     }
   }
   
@@ -78,6 +155,7 @@ function checkPython() {
   console.error('   - macOS: brew install python3');
   console.error('   - Ubuntu: sudo apt install python3 python3-pip');  
   console.error('   - Windows: 從 https://python.org 下載安裝');
+  console.error('             或使用 Microsoft Store 安裝 Python');
   console.error('');
   console.error('   已嘗試的路徑：');
   pythonPaths.forEach(path => console.error(`   - ${path}`));
@@ -109,29 +187,60 @@ function installDependencies(pythonCmd) {
     // 在 MCP 模式下使用安靜模式安裝，避免輸出干擾
     const quietFlag = isMCPMode() ? '--quiet' : '';
     const stdio = isMCPMode() ? 'pipe' : 'inherit';
+    const isWindows = os.platform() === 'win32';
     
-    // 首先嘗試正常安裝
-    try {
-      require('child_process').execSync(
-        `${pythonCmd} -m pip install --user ${quietFlag} -r "${requirementsPath}"`,
-        { stdio }
-      );
-    } catch (err) {
-      // 如果失敗，嘗試使用 --break-system-packages（Python 3.12+）
-      require('child_process').execSync(
-        `${pythonCmd} -m pip install --user --break-system-packages ${quietFlag} -r "${requirementsPath}"`,
-        { stdio }
-      );
+    // Windows 和 Unix 有不同的 pip 安裝策略
+    const installStrategies = isWindows ? [
+      // Windows 策略
+      `${pythonCmd} -m pip install ${quietFlag} -r "${requirementsPath}"`,  // 不使用 --user，避免權限問題
+      `${pythonCmd} -m pip install --user ${quietFlag} -r "${requirementsPath}"`,  // 回退到 --user
+      `py -m pip install ${quietFlag} -r "${requirementsPath}"`,  // 使用 py launcher
+      `py -m pip install --user ${quietFlag} -r "${requirementsPath}"`
+    ] : [
+      // Unix 策略
+      `${pythonCmd} -m pip install --user ${quietFlag} -r "${requirementsPath}"`,  // 正常安裝
+      `${pythonCmd} -m pip install --user --break-system-packages ${quietFlag} -r "${requirementsPath}"`  // Python 3.12+ 回退
+    ];
+    
+    let installSuccess = false;
+    let lastError = null;
+    
+    for (const strategy of installStrategies) {
+      try {
+        require('child_process').execSync(strategy, { 
+          stdio,
+          shell: isWindows  // Windows 需要 shell
+        });
+        installSuccess = true;
+        break;
+      } catch (err) {
+        lastError = err;
+        // 繼續嘗試下一個策略
+      }
+    }
+    
+    if (!installSuccess) {
+      throw lastError;
     }
     
     log('✅ 依賴安裝完成！');
   } catch (e) {
+    const isWindows = os.platform() === 'win32';
     console.error('❌ 安裝依賴失敗');
-    console.error('   建議使用 pipx 安裝（推薦）：');
-    console.error('   pipx install git+https://github.com/physictim/thsrc_mcp.git');
-    console.error('');
-    console.error('   或手動執行：');
-    console.error(`   ${pythonCmd} -m pip install --user --break-system-packages httpx fastmcp python-dotenv`);
+    
+    if (isWindows) {
+      console.error('   Windows 用戶建議：');
+      console.error('   1. 確保以管理員身份運行 Command Prompt 或 PowerShell');
+      console.error('   2. 或使用以下命令手動安裝：');
+      console.error('      py -m pip install httpx fastmcp python-dotenv');
+      console.error('   3. 或從 Microsoft Store 安裝 Python 並重試');
+    } else {
+      console.error('   建議使用 pipx 安裝（推薦）：');
+      console.error('   pipx install git+https://github.com/physictim/thsrc_mcp.git');
+      console.error('');
+      console.error('   或手動執行：');
+      console.error(`   ${pythonCmd} -m pip install --user --break-system-packages httpx fastmcp python-dotenv`);
+    }
     console.error('');
     console.error('   或使用 pipx 安裝：');
     console.error('   pipx install git+https://github.com/physictim/thsrc_mcp.git');
