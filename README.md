@@ -57,15 +57,15 @@ python -m pip install --user pipx
 python -m pipx ensurepath
 
 # 從 GitHub 安裝
-pipx install git+https://github.com/physictim/mcp-server-thsrc.git
+pipx install git+https://github.com/physictim/thsrc_mcp.git
 ```
 
 ### 方法 2：手動安裝
 
 ```bash
 # 複製專案
-git clone https://github.com/physictim/mcp-server-thsrc.git
-cd mcp-server-thsrc
+git clone https://github.com/physictim/thsrc_mcp.git
+cd thsrc_mcp
 
 # 建立虛擬環境
 python -m venv .venv
