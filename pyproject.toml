@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-server-thsrc"
+version = "0.1.0"
+description = "MCP server for Taiwan High Speed Rail (THSR) information"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [{name = "physictim"}]
+dependencies = [
+    "asyncio",
+    "httpx",
+    "fastmcp>=2.11.0",
+    "python-dotenv"
+]
+
+[project.scripts]
+mcp-server-thsrc = "thsrc:main"
+
+[project.urls]
+"Homepage" = "https://github.com/physictim/mcp-server-thsrc"
+"Bug Tracker" = "https://github.com/physictim/mcp-server-thsrc/issues"
