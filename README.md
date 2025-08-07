@@ -49,7 +49,15 @@ python thsrc.py
 
 ## 快速開始
 
-### 方法 1：使用 pipx（推薦）
+### 方法 1：使用 npx（推薦）
+
+直接使用，不需要安裝：
+
+```bash
+npx @physictim/mcp-server-thsrc --help
+```
+
+### 方法 2：使用 pipx
 
 ```bash
 # 安裝 pipx（如果還沒有）
@@ -60,7 +68,7 @@ python -m pipx ensurepath
 pipx install git+https://github.com/physictim/thsrc_mcp.git
 ```
 
-### 方法 2：手動安裝
+### 方法 3：手動安裝
 
 ```bash
 # 複製專案
@@ -100,6 +108,22 @@ pip install -r requirements.txt
 ### 3. 編輯設定檔
 
 在 `claude_desktop_config.json` 中加入以下設定：
+
+#### 如果你使用 npx（推薦）：
+```json
+{
+  "mcpServers": {
+    "thsrc": {
+      "command": "npx",
+      "args": ["-y", "@physictim/mcp-server-thsrc"],
+      "env": {
+        "TDX_CLIENT_ID": "在這裡貼上你的 Client ID",
+        "TDX_CLIENT_SECRET": "在這裡貼上你的 Client Secret"
+      }
+    }
+  }
+}
+```
 
 #### 如果你使用 pipx 安裝：
 ```json

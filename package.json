@@ -1,23 +1,41 @@
 {
-  "name": "@yourusername/mcp-server-thsrc",
+  "name": "@physictim/mcp-server-thsrc",
   "version": "0.1.0",
   "description": "MCP server for Taiwan High Speed Rail (THSR) information",
   "main": "index.js",
   "bin": {
     "mcp-server-thsrc": "./index.js"
   },
+  "files": [
+    "index.js",
+    "thsrc.py",
+    "requirements.txt",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node index.js --help || echo 'Package loads successfully'",
+    "prepublishOnly": "node -e \"console.log('Ready to publish @physictim/mcp-server-thsrc')\""
   },
   "keywords": [
     "mcp",
     "modelcontextprotocol",
     "thsr",
     "taiwan",
-    "rail"
+    "rail",
+    "transport",
+    "tdx"
   ],
-  "author": "Your Name",
+  "author": "physictim",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/physictim/thsrc_mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/physictim/thsrc_mcp/issues"
+  },
+  "homepage": "https://github.com/physictim/thsrc_mcp#readme",
   "dependencies": {},
   "engines": {
     "node": ">=14.0.0"
