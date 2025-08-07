@@ -109,15 +109,29 @@ function installDependencies(pythonCmd) {
     // 在 MCP 模式下使用安靜模式安裝，避免輸出干擾
     const quietFlag = isMCPMode() ? '--quiet' : '';
     const stdio = isMCPMode() ? 'pipe' : 'inherit';
-    require('child_process').execSync(
-      `${pythonCmd} -m pip install --user ${quietFlag} -r "${requirementsPath}"`,
-      { stdio }
-    );
+    
+    // 首先嘗試正常安裝
+    try {
+      require('child_process').execSync(
+        `${pythonCmd} -m pip install --user ${quietFlag} -r "${requirementsPath}"`,
+        { stdio }
+      );
+    } catch (err) {
+      // 如果失敗，嘗試使用 --break-system-packages（Python 3.12+）
+      require('child_process').execSync(
+        `${pythonCmd} -m pip install --user --break-system-packages ${quietFlag} -r "${requirementsPath}"`,
+        { stdio }
+      );
+    }
+    
     log('✅ 依賴安裝完成！');
   } catch (e) {
     console.error('❌ 安裝依賴失敗');
-    console.error('   請手動執行以下命令：');
-    console.error(`   ${pythonCmd} -m pip install --user httpx fastmcp python-dotenv`);
+    console.error('   建議使用 pipx 安裝（推薦）：');
+    console.error('   pipx install git+https://github.com/physictim/thsrc_mcp.git');
+    console.error('');
+    console.error('   或手動執行：');
+    console.error(`   ${pythonCmd} -m pip install --user --break-system-packages httpx fastmcp python-dotenv`);
     console.error('');
     console.error('   或使用 pipx 安裝：');
     console.error('   pipx install git+https://github.com/physictim/thsrc_mcp.git');
