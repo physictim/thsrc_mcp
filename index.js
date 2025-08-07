@@ -79,7 +79,7 @@ function checkPython() {
 function installDependencies(pythonCmd) {
   const requirementsPath = path.join(__dirname, 'requirements.txt');
   
-  console.log('🔍 檢查 Python 依賴...');
+  log('🔍 檢查 Python 依賴...');
   
   // 檢查是否已安裝依賴
   try {
@@ -87,21 +87,21 @@ function installDependencies(pythonCmd) {
       `${pythonCmd} -c "import httpx, fastmcp, dotenv"`, 
       { stdio: 'pipe' }
     );
-    console.log('✅ Python 依賴已安裝');
+    log('✅ Python 依賴已安裝');
     return; // 依賴已安裝
   } catch (e) {
     // 需要安裝依賴
   }
   
-  console.log('📦 首次執行，正在安裝 Python 依賴...');
-  console.log('   這可能需要幾分鐘時間...');
+  log('📦 首次執行，正在安裝 Python 依賴...');
+  log('   這可能需要幾分鐘時間...');
   
   try {
     require('child_process').execSync(
       `${pythonCmd} -m pip install --user -r "${requirementsPath}"`,
       { stdio: 'inherit' }
     );
-    console.log('✅ 依賴安裝完成！');
+    log('✅ 依賴安裝完成！');
   } catch (e) {
     console.error('❌ 安裝依賴失敗');
     console.error('   請手動執行以下命令：');
@@ -110,6 +110,19 @@ function installDependencies(pythonCmd) {
     console.error('   或使用 pipx 安裝：');
     console.error('   pipx install git+https://github.com/physictim/thsrc_mcp.git');
     process.exit(1);
+  }
+}
+
+// 檢測是否在 MCP 環境中運行
+function isMCPMode() {
+  // 如果 stdout 是 pipe，通常表示在 MCP 環境中
+  return !process.stdout.isTTY;
+}
+
+// 安全的日誌輸出（只在非 MCP 模式下輸出）
+function log(message) {
+  if (!isMCPMode()) {
+    console.log(message);
   }
 }
 
@@ -122,7 +135,7 @@ function main() {
     process.exit(0);
   }
   
-  console.log('🚄 啟動 MCP Server THSRC...');
+  log('🚄 啟動 MCP Server THSRC...');
   
   // 檢查環境
   checkEnvironment();
@@ -141,7 +154,7 @@ function main() {
   // 首次執行時安裝依賴
   installDependencies(pythonCmd);
   
-  console.log('🔌 連接 MCP 協議...');
+  log('🔌 連接 MCP 協議...');
   
   // 執行 Python 腳本
   const child = spawn(pythonCmd, [scriptPath], {
@@ -163,12 +176,12 @@ function main() {
   
   // 處理中斷信號
   process.on('SIGINT', () => {
-    console.log('\n👋 正在關閉 MCP Server THSRC...');
+    log('\n👋 正在關閉 MCP Server THSRC...');
     child.kill('SIGINT');
   });
   
   process.on('SIGTERM', () => {
-    console.log('\n👋 正在關閉 MCP Server THSRC...');
+    log('\n👋 正在關閉 MCP Server THSRC...');
     child.kill('SIGTERM');
   });
 }
