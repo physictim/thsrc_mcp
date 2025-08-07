@@ -48,18 +48,24 @@ function checkEnvironment() {
 
 // 檢查 Python 是否安裝
 function checkPython() {
-  const pythonCommands = ['python3', 'python'];
+  // 添加常見的 Python 路徑
+  const pythonPaths = [
+    'python3', 'python',
+    '/usr/local/bin/python3', '/usr/local/bin/python',
+    '/usr/bin/python3', '/usr/bin/python',
+    '/opt/homebrew/bin/python3', '/opt/homebrew/bin/python'
+  ];
   
-  for (const cmd of pythonCommands) {
+  for (const pythonCmd of pythonPaths) {
     try {
-      const result = require('child_process').execSync(`${cmd} --version`, { 
+      const result = require('child_process').execSync(`${pythonCmd} --version`, { 
         encoding: 'utf8',
         stdio: 'pipe' 
       });
       if (result.includes('Python 3.')) {
         const version = result.match(/Python (\d+\.\d+)/);
         if (version && parseFloat(version[1]) >= 3.8) {
-          return cmd;
+          return pythonCmd;
         }
       }
     } catch (e) {
@@ -72,6 +78,9 @@ function checkPython() {
   console.error('   - macOS: brew install python3');
   console.error('   - Ubuntu: sudo apt install python3 python3-pip');  
   console.error('   - Windows: 從 https://python.org 下載安裝');
+  console.error('');
+  console.error('   已嘗試的路徑：');
+  pythonPaths.forEach(path => console.error(`   - ${path}`));
   process.exit(1);
 }
 
