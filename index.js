@@ -106,9 +106,12 @@ function installDependencies(pythonCmd) {
   log('   這可能需要幾分鐘時間...');
   
   try {
+    // 在 MCP 模式下使用安靜模式安裝，避免輸出干擾
+    const quietFlag = isMCPMode() ? '--quiet' : '';
+    const stdio = isMCPMode() ? 'pipe' : 'inherit';
     require('child_process').execSync(
-      `${pythonCmd} -m pip install --user -r "${requirementsPath}"`,
-      { stdio: 'inherit' }
+      `${pythonCmd} -m pip install --user ${quietFlag} -r "${requirementsPath}"`,
+      { stdio }
     );
     log('✅ 依賴安裝完成！');
   } catch (e) {
