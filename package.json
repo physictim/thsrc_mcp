@@ -1,6 +1,6 @@
 {
   "name": "@physictim/mcp-server-thsrc",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "MCP server for Taiwan High Speed Rail (THSR) information",
   "main": "index.js",
   "bin": {
